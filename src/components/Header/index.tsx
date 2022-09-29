@@ -1,4 +1,4 @@
-import styles from './Header.module.css'
+import styles from './styles.module.css'
 
 import logoPNG from '../../../public/logo.png'
 
