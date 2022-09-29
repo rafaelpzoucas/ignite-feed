@@ -1,38 +1,86 @@
+import { format, formatDistanceToNow } from 'date-fns'
+import ptBR from 'date-fns/locale/pt-BR'
+import { LineSegment } from 'phosphor-react'
+import { useState } from 'react'
+
 import { Avatar } from '../Avatar'
 import { Comment } from '../Comment'
 import styles from './styles.module.css'
 
-export function Post() {
+interface PostProps {
+    author: {
+        avatarUrl: string
+        name: string
+        role: string
+    }
+    content: {
+        type: string
+        content: string
+    }[]
+    publishedAt: Date
+}
+
+export function Post({ author, content, publishedAt }: PostProps) {
+    const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'às' HH'h'mm", {
+        locale: ptBR
+    })
+
+    const publishedDateRelativeToNow = formatDistanceToNow(publishedAt, {
+        locale: ptBR,
+        addSuffix: true
+    })
+
+    const [comments, setComments] = useState([
+        'Post muito legal, boa, parabem'
+    ]) 
+
+    const [newCommentText, setNewCommentText] = useState('')
+
+    function handleCreateNewComment() {
+        event?.preventDefault()
+
+        setComments([...comments, newCommentText])
+        setNewCommentText('')
+    }
+
+    function handleNewCommentChange() {
+        setNewCommentText(event?.target.value)
+    }
+
     return(
         <article className={styles.post}>
             <header>
                 <div className={styles.author}>
-                    <Avatar hasBorder src='https://github.com/rafaelpzoucas.png' />
+                    <Avatar hasBorder src={author.avatarUrl} />
                     <div className={styles.authorInfo}>
-                        <strong>Rafael Zoucas</strong>
+                        <strong>{author.name}</strong>
                         <span>Web Developer</span>
                     </div>
                 </div>
 
-                <time title='20 de setembro às 00h55' dateTime='2022-08-20 00:55:00'>Publicado há 1h</time>
+                <time title={publishedDateFormatted} dateTime={publishedAt.toISOString()}> 
+                    {publishedDateRelativeToNow}
+                </time>
             </header>
 
             <div className={styles.content}>
-                <p>Fala galera 😎</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cupiditate ipsam velit libero sunt impedit eos explicabo dignissimos, labore quasi corporis iste necessitatibus inventore ut iure dolore perspiciatis omnis, itaque commodi!</p>
-                <p>👉 <a href="#"> jane.design/doctorcare</a></p>
-                <p>
-                    <a href="#">#novoprojeto</a>
-                    <a href='#'> #nlw</a> 
-                    <a href='#'> #rocketseat</a>
-                </p>
+                {content.map(item => {
+                    if(item.type === 'paragraph') {
+                        return <p key={item.content}>{item.content}</p>
+                    } else if(item.type === 'link') {
+                        return <p key={item.content}><a href="#">{item.content}</a></p>
+                    }
+                })}
             </div>
 
-            <form className={styles.commentForm}>
+            <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
                 <strong>Deixe seu comentário</strong>
 
                 <textarea 
+                    name="comment"
                     placeholder='Deixe um comentário'
+                    value={newCommentText}
+                    onChange={handleNewCommentChange}
                 />
                 <footer>
                     <button type="submit">
@@ -42,9 +90,14 @@ export function Post() {
             </form>
 
             <div className={styles.commentList}>
-                <Comment />
-                <Comment />
-                <Comment />
+                {comments.map(comment => {
+                    return (
+                        <Comment 
+                            key={comment}
+                            content={comment} 
+                        />
+                    )
+                })}
             </div>
         </article>
     )
